@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Process Discovery | LaunchPad AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #FDFBF7;
+      --bg-secondary: #F5F2EC;
+      --bg-tertiary: #EBE7DF;
+      --text-primary: #1A1918;
+      --text-secondary: #5C5A56;
+      --text-tertiary: #8A8884;
+      --accent: #2D5A3D;
+      --accent-light: #E8F0EA;
+      --accent-hover: #234A31;
+      --border: #E0DCD4;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --shadow-md: 0 4px 12px rgba(26, 25, 24, 0.08);
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+    }
+
+    .header-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .header p { color: var(--text-secondary); font-size: 16px; }
+
+    /* Loading */
+    .loading-container {
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      padding: 48px 32px;
+      text-align: center;
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--bg-tertiary);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 24px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-container h2 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .loading-container p { color: var(--text-secondary); font-size: 14px; }
+
+    .loading-steps {
+      margin-top: 24px;
+      text-align: left;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .loading-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: 14px;
+      color: var(--text-tertiary);
+    }
+
+    .loading-step.active { color: var(--text-primary); }
+    .loading-step.done { color: var(--accent); }
+
+    .loading-step .icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-step.active .icon::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+    }
+
+    .loading-step.done .icon::after { content: '✓'; color: var(--accent); font-weight: bold; }
+    .loading-step.pending .icon::after { content: ''; width: 8px; height: 8px; background: var(--bg-tertiary); border-radius: 50%; }
+
+    /* Progress */
+    .progress-container { margin-bottom: 32px; }
+    .progress-bar { height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); transition: width 0.5s ease; }
+    .progress-text { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; color: var(--text-tertiary); }
+
+    /* Chat */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 85%;
+      animation: messageIn 0.3s ease;
+    }
+
+    @keyframes messageIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.agent { align-self: flex-start; }
+    .message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .message.agent .message-avatar { background: var(--accent); color: white; }
+    .message.user .message-avatar { background: var(--bg-secondary); color: var(--text-primary); }
+
+    .message-content {
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .message.agent .message-content { background: var(--bg-secondary); border-bottom-left-radius: 4px; }
+    .message.user .message-content { background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+
+    .typing-indicator { display: flex; gap: 4px; padding: 8px 0; }
+    .typing-indicator span { width: 8px; height: 8px; background: var(--text-tertiary); border-radius: 50%; animation: typing 1.4s infinite; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    .chat-input-container { padding: 20px 24px; border-top: 1px solid var(--border); background: var(--bg-primary); }
+    .chat-input-wrapper { display: flex; gap: 12px; align-items: flex-end; }
+
+    .chat-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 15px;
+      resize: none;
+      min-height: 52px;
+      max-height: 150px;
+    }
+
+    .chat-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+
+    .send-button {
+      width: 52px;
+      height: 52px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .send-button:hover { background: var(--accent-hover); }
+    .send-button:disabled { background: var(--bg-tertiary); cursor: not-allowed; }
+    .send-button svg { width: 20px; height: 20px; }
+
+    /* Form */
+    .onboarding {
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      padding: 32px;
+    }
+
+    .onboarding h2 { font-family: var(--font-display); font-size: 24px; margin-bottom: 8px; }
+    .onboarding > p { color: var(--text-secondary); margin-bottom: 28px; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 15px;
+      background: white;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .start-button {
+      width: 100%;
+      padding: 16px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .start-button:hover { background: var(--accent-hover); }
+    .start-button:disabled { background: var(--bg-tertiary); cursor: not-allowed; }
+
+    /* Summary */
+    .summary {
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      padding: 32px;
+    }
+
+    .summary-header { text-align: center; margin-bottom: 32px; }
+
+    .summary-header .checkmark {
+      width: 64px;
+      height: 64px;
+      background: var(--accent-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .summary-header .checkmark svg { width: 32px; height: 32px; color: var(--accent); }
+    .summary-header h2 { font-family: var(--font-display); font-size: 24px; margin-bottom: 8px; }
+    .summary-header p { color: var(--text-secondary); }
+
+    .summary-section { margin-bottom: 24px; }
+    .summary-section h3 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: 12px; }
+    .summary-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .summary-tag { background: var(--bg-secondary); padding: 6px 12px; border-radius: 100px; font-size: 14px; }
+    .summary-tag.pain { background: #FEF2F2; color: #B91C1C; }
+    .summary-tag.tool { background: #EFF6FF; color: #1D4ED8; }
+    .summary-tag.process { background: var(--accent-light); color: var(--accent); }
+
+    .export-buttons { display: flex; gap: 12px; margin-top: 24px; }
+    .export-button { flex: 1; padding: 14px 20px; border-radius: var(--radius-md); font-size: 15px; font-weight: 500; cursor: pointer; }
+    .export-button.primary { background: var(--accent); color: white; border: none; }
+    .export-button.secondary { background: white; color: var(--text-primary); border: 1px solid var(--border); }
+
+    .dev-panel {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--bg-secondary);
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--text-tertiary);
+      border: 1px solid var(--border);
+      max-width: 300px;
+    }
+
+    .dev-panel summary { cursor: pointer; font-weight: 500; }
+    .dev-panel pre { margin-top: 8px; font-size: 10px; max-height: 200px; overflow: auto; white-space: pre-wrap; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .message { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-badge">Process Discovery</div>
+      <h1>Workflow Interview</h1>
+      <p>Help us understand how work flows through your organization</p>
+    </header>
+
+    <!-- Onboarding -->
+    <div id="onboarding" class="onboarding">
+      <h2>Before we begin</h2>
+      <p>Tell us about yourself so we can ask the right questions.</p>
+      
+      <div class="form-group">
+        <label for="name">Your name</label>
+        <input type="text" id="name" placeholder="e.g., Priya Sharma">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="role">Your role</label>
+          <input type="text" id="role" placeholder="e.g., Accounts Payable Manager">
+        </div>
+        <div class="form-group">
+          <label for="department">Department</label>
+          <select id="department">
+            <option value="">Select...</option>
+            <option value="Finance / Accounting">Finance / Accounting</option>
+            <option value="Operations">Operations</option>
+            <option value="Sales">Sales</option>
+            <option value="HR / People">HR / People</option>
+            <option value="IT / Technology">IT / Technology</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="company">Company name & brief description</label>
+        <input type="text" id="company" placeholder="e.g., Acme Manufacturing — 200-person company">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tenure">Time at company</label>
+          <select id="tenure">
+            <option value="">Select...</option>
+            <option value="Less than 6 months">Less than 6 months</option>
+            <option value="1-2 years">1-2 years</option>
+            <option value="2-5 years">2-5 years</option>
+            <option value="5+ years">5+ years</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="reports">Direct reports</label>
+          <select id="reports">
+            <option value="">Select...</option>
+            <option value="None">None (IC)</option>
+            <option value="1-3 people">1-3 people</option>
+            <option value="4-10 people">4-10 people</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="manager">Who do you report to?</label>
+        <input type="text" id="manager" placeholder="e.g., CFO">
+      </div>
+
+      <button class="start-button" onclick="startInterview()">Start Interview →</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingState" class="loading-container hidden">
+      <div class="loading-spinner"></div>
+      <h2>Preparing your interview...</h2>
+      <p>We're customizing questions for your role</p>
+      <div class="loading-steps">
+        <div class="loading-step active" id="step1"><span class="icon"></span><span>Understanding your role</span></div>
+        <div class="loading-step pending" id="step2"><span class="icon"></span><span>Identifying key processes</span></div>
+        <div class="loading-step pending" id="step3"><span class="icon"></span><span>Preparing questions</span></div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div id="chatInterface" class="hidden">
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text">
+          <span id="progressLabel">Getting started</span>
+          <span id="progressPercent">0%</span>
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <textarea class="chat-input" id="chatInput" placeholder="Type your response..." rows="1" onkeydown="handleKeydown(event)"></textarea>
+            <button class="send-button" id="sendButton" onclick="sendMessage()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div id="summaryView" class="summary hidden">
+      <div class="summary-header">
+        <div class="checkmark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h2>Interview Complete</h2>
+        <p>Here's what we captured.</p>
+      </div>
+      <div class="summary-section">
+        <h3>Workflows Mapped</h3>
+        <div class="summary-tags" id="processTags"></div>
+      </div>
+      <div class="summary-section">
+        <h3>Tools You Use</h3>
+        <div class="summary-tags" id="toolTags"></div>
+      </div>
+      <div class="summary-section">
+        <h3>Friction Points</h3>
+        <div class="summary-tags" id="painTags"></div>
+      </div>
+      <div class="export-buttons">
+        <button class="export-button primary" onclick="downloadJson()">Download JSON</button>
+        <button class="export-button secondary" onclick="copyTranscript()">Copy Transcript</button>
+      </div>
+    </div>
+  </div>
+
+  <details class="dev-panel">
+    <summary>Dev: $<span id="totalCost">0.000</span> | Turn <span id="turnCount">0</span></summary>
+    <pre id="devLog">Ready</pre>
+  </details>
+
+  <script>
+    // =========================================================================
+    // CONFIG
+    // =========================================================================
+    const CONFIG = {
+      MODEL: 'claude-sonnet-4-20250514',
+      MAX_TURNS: 10,
+      // API endpoint - calls our serverless function
+      API_URL: '/api/claude'
+    };
+
+    // =========================================================================
+    // STATE
+    // =========================================================================
+    let respondent = {};
+    let interviewBrief = null;
+    let messages = [];
+    let conversationHistory = [];
+    let turnCount = 0;
+    let totalCost = 0;
+    let interviewStartTime = null;
+
+    let liveEntities = {
+      processes: [],
+      tools: [],
+      painPoints: [],
+      handoffs: []
+    };
+
+    // =========================================================================
+    // CONTEXT GENERATION PROMPT
+    // =========================================================================
+    function getContextGenerationPrompt() {
+      return `You are an expert organizational researcher preparing to interview someone about their work processes.
+
+RESPONDENT PROFILE:
+- Name: ${respondent.name}
+- Role: ${respondent.role}
+- Department: ${respondent.department}
+- Company: ${respondent.company}
+- Tenure: ${respondent.tenure}
+- Direct reports: ${respondent.reports}
+- Reports to: ${respondent.manager}
+
+YOUR TASK:
+Generate a comprehensive interview preparation brief for this specific person. Be HIGHLY SPECIFIC to their exact role — an AP Manager at a manufacturing company has different processes than one at a tech startup.
+
+Return ONLY a JSON object (no markdown, no explanation):
+
+{
+  "role_summary": "2-3 sentence description of what this person likely does day-to-day",
+  "core_processes": [
+    {
+      "name": "Specific process name",
+      "typical_steps": ["Step 1", "Step 2", "Step 3"],
+      "trigger": "What starts this",
+      "frequency": "How often",
+      "likely_pain_points": ["Pain 1", "Pain 2"],
+      "tools_likely_used": ["Tool 1", "Tool 2"]
+    }
+  ],
+  "high_value_questions": [
+    {
+      "question": "Exact question to ask",
+      "why": "What insight this surfaces",
+      "follow_ups": ["Follow-up 1", "Follow-up 2"]
+    }
+  ],
+  "signals_to_chase": [
+    {
+      "signal": "If they mention X",
+      "probe": "Ask Y"
+    }
+  ],
+  "opening_question": "The perfect first question for this person"
+}
+
+Include at least 5 core processes, 8 high-value questions, and 5 signals to chase.`;
+    }
+
+    // =========================================================================
+    // INTERVIEW SYSTEM PROMPT
+    // =========================================================================
+    function getInterviewSystemPrompt() {
+      const briefJson = JSON.stringify(interviewBrief, null, 2);
+      
+      return `You are conducting a process discovery interview. You have prepared extensively.
+
+RESPONDENT:
+- Name: ${respondent.name}
+- Role: ${respondent.role}  
+- Department: ${respondent.department}
+- Company: ${respondent.company}
+
+YOUR PREPARATION BRIEF:
+${briefJson}
+
+INTERVIEW STATE:
+- Turn: ${turnCount + 1} of ${CONFIG.MAX_TURNS}
+- Processes discussed: ${liveEntities.processes.map(p => p.name).join(', ') || 'None yet'}
+- Tools mentioned: ${liveEntities.tools.map(t => t.name).join(', ') || 'None yet'}
+- Pain points: ${liveEntities.painPoints.map(p => p.description).join('; ') || 'None yet'}
+
+RULES:
+1. ONE question per message
+2. Acknowledge what they said briefly (1-2 sentences), then ask
+3. Use questions from your brief
+4. When they mention frustration, dig deeper: "Tell me more about that"
+5. Use their terminology
+6. Never suggest solutions or mention AI
+7. ${turnCount >= 8 ? '⚠️ WRAP UP — ask final closing questions' : ''}
+
+Respond with ONLY your next message. Be conversational and natural.`;
+    }
+
+    // =========================================================================
+    // EXTRACTION PROMPT
+    // =========================================================================
+    function getExtractionPrompt(userMessage, assistantMessage) {
+      return `Extract entities from this interview exchange. Return ONLY JSON.
+
+EXCHANGE:
+USER: ${userMessage}
+ASSISTANT: ${assistantMessage}
+
+ALREADY EXTRACTED (don't duplicate):
+- Processes: ${liveEntities.processes.map(p => p.name).join(', ') || 'none'}
+- Tools: ${liveEntities.tools.map(t => t.name).join(', ') || 'none'}
+
+Extract NEW information:
+
+{
+  "processes": [{"name": "activity name", "frequency": "how often"}],
+  "tools": [{"name": "tool name", "usedFor": "what task"}],
+  "painPoints": [{"description": "the frustration", "severity": 3}],
+  "handoffs": [{"from": "sender", "to": "receiver", "artifact": "what"}]
+}
+
+Only include NEW items. Empty arrays if nothing new.`;
+    }
+
+    // =========================================================================
+    // API CALL (calls our serverless function)
+    // =========================================================================
+    async function callClaude(systemPrompt, userContent, maxTokens = 1000) {
+      devLog('Calling API...');
+      
+      const response = await fetch(CONFIG.API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: CONFIG.MODEL,
+          max_tokens: maxTokens,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userContent }]
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`API error: ${response.status} - ${error}`);
+      }
+
+      const data = await response.json();
+      
+      // Track cost
+      if (data.usage) {
+        const inputCost = (data.usage.input_tokens / 1_000_000) * 3;
+        const outputCost = (data.usage.output_tokens / 1_000_000) * 15;
+        totalCost += inputCost + outputCost;
+        document.getElementById('totalCost').textContent = totalCost.toFixed(4);
+      }
+      
+      return data.content[0].text;
+    }
+
+    async function callClaudeConversation(systemPrompt, messages, maxTokens = 500) {
+      devLog('Calling API (conversation)...');
+      
+      const response = await fetch(CONFIG.API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: CONFIG.MODEL,
+          max_tokens: maxTokens,
+          system: systemPrompt,
+          messages: messages
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`API error: ${response.status} - ${error}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.usage) {
+        const inputCost = (data.usage.input_tokens / 1_000_000) * 3;
+        const outputCost = (data.usage.output_tokens / 1_000_000) * 15;
+        totalCost += inputCost + outputCost;
+        document.getElementById('totalCost').textContent = totalCost.toFixed(4);
+      }
+      
+      return data.content[0].text;
+    }
+
+    // =========================================================================
+    // INTERVIEW FLOW
+    // =========================================================================
+    async function generateInterviewBrief() {
+      updateLoadingStep(1, 'active');
+      
+      try {
+        const response = await callClaude(
+          'You are an expert organizational researcher. Return only valid JSON.',
+          getContextGenerationPrompt(),
+          2500
+        );
+
+        updateLoadingStep(1, 'done');
+        updateLoadingStep(2, 'active');
+
+        // Parse JSON
+        let cleanJson = response.trim();
+        if (cleanJson.startsWith('```')) {
+          cleanJson = cleanJson.replace(/```json?\n?/g, '').replace(/```$/g, '').trim();
+        }
+        
+        interviewBrief = JSON.parse(cleanJson);
+        devLog('Brief generated', interviewBrief);
+        
+        updateLoadingStep(2, 'done');
+        updateLoadingStep(3, 'active');
+        await new Promise(r => setTimeout(r, 500));
+        updateLoadingStep(3, 'done');
+        
+        return true;
+
+      } catch (error) {
+        console.error('Brief error:', error);
+        devLog('Brief failed: ' + error.message);
+        
+        // Fallback
+        interviewBrief = {
+          role_summary: `${respondent.role} in ${respondent.department}`,
+          core_processes: [],
+          high_value_questions: [
+            { question: "What takes up most of your time in a typical week?", why: "Opener" }
+          ],
+          signals_to_chase: [],
+          opening_question: "What are the 2-3 things you spend most of your time on in a typical week?"
+        };
+        return true;
+      }
+    }
+
+    async function generateResponse(userMessage) {
+      conversationHistory.push({ role: 'user', content: userMessage });
+
+      try {
+        const response = await callClaudeConversation(
+          getInterviewSystemPrompt(),
+          conversationHistory,
+          400
+        );
+
+        conversationHistory.push({ role: 'assistant', content: response });
+        
+        // Extract entities in background
+        extractEntities(userMessage, response);
+        
+        return response;
+
+      } catch (error) {
+        console.error('Response error:', error);
+        devLog('Response failed: ' + error.message);
+        return "I apologize, I'm having a technical issue. Could you repeat that?";
+      }
+    }
+
+    async function extractEntities(userMessage, assistantMessage) {
+      try {
+        const response = await callClaude(
+          'Extract entities. Return only valid JSON.',
+          getExtractionPrompt(userMessage, assistantMessage),
+          500
+        );
+
+        let cleanJson = response.trim();
+        if (cleanJson.startsWith('```')) {
+          cleanJson = cleanJson.replace(/```json?\n?/g, '').replace(/```$/g, '').trim();
+        }
+        
+        const extracted = JSON.parse(cleanJson);
+        mergeEntities(extracted);
+        devLog('Extracted', extracted);
+
+      } catch (error) {
+        console.error('Extraction error:', error);
+      }
+    }
+
+    function mergeEntities(extracted) {
+      if (extracted.processes) {
+        extracted.processes.forEach(p => {
+          if (!liveEntities.processes.find(e => e.name.toLowerCase() === p.name.toLowerCase())) {
+            liveEntities.processes.push(p);
+          }
+        });
+      }
+      if (extracted.tools) {
+        extracted.tools.forEach(t => {
+          if (!liveEntities.tools.find(e => e.name.toLowerCase() === t.name.toLowerCase())) {
+            liveEntities.tools.push(t);
+          }
+        });
+      }
+      if (extracted.painPoints) {
+        liveEntities.painPoints.push(...extracted.painPoints);
+      }
+      if (extracted.handoffs) {
+        liveEntities.handoffs.push(...extracted.handoffs);
+      }
+    }
+
+    // =========================================================================
+    // UI
+    // =========================================================================
+    function updateLoadingStep(step, status) {
+      ['step1', 'step2', 'step3'].forEach((s, i) => {
+        const el = document.getElementById(s);
+        el.className = 'loading-step ' + (i + 1 < step ? 'done' : i + 1 === step ? status : 'pending');
+      });
+    }
+
+    function devLog(label, data) {
+      const log = document.getElementById('devLog');
+      log.textContent = `${label}:\n${typeof data === 'object' ? JSON.stringify(data, null, 2).slice(0, 500) : data}`;
+    }
+
+    const chatInput = document.getElementById('chatInput');
+    chatInput?.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+    });
+
+    function handleKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    async function startInterview() {
+      respondent = {
+        name: document.getElementById('name').value || 'there',
+        role: document.getElementById('role').value || 'team member',
+        department: document.getElementById('department').value || 'your team',
+        company: document.getElementById('company').value || 'your company',
+        tenure: document.getElementById('tenure').value || '',
+        reports: document.getElementById('reports').value || '',
+        manager: document.getElementById('manager').value || ''
+      };
+
+      if (!respondent.role || !respondent.department) {
+        alert('Please fill in your role and department.');
+        return;
+      }
+
+      document.getElementById('onboarding').classList.add('hidden');
+      document.getElementById('loadingState').classList.remove('hidden');
+
+      await generateInterviewBrief();
+
+      await new Promise(r => setTimeout(r, 800));
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('chatInterface').classList.remove('hidden');
+
+      interviewStartTime = Date.now();
+
+      const openingMessage = interviewBrief?.opening_question 
+        ? `Hi ${respondent.name.split(' ')[0]}! Thanks for taking the time today. I've been looking forward to learning about how things work in your role.\n\n${interviewBrief.opening_question}`
+        : `Hi ${respondent.name.split(' ')[0]}! What are the 2-3 things you spend most of your time on in a typical week?`;
+
+      addAgentMessage(openingMessage);
+      conversationHistory.push({ role: 'assistant', content: openingMessage });
+    }
+
+    function addAgentMessage(text) {
+      const container = document.getElementById('chatMessages');
+      
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message agent';
+      typingDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+      container.appendChild(typingDiv);
+      container.scrollTop = container.scrollHeight;
+
+      setTimeout(() => {
+        typingDiv.remove();
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message agent';
+        messageDiv.innerHTML = `<div class="message-avatar">AI</div><div class="message-content">${text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div>`;
+        container.appendChild(messageDiv);
+        container.scrollTop = container.scrollHeight;
+        messages.push({ role: 'agent', content: text });
+      }, 600);
+    }
+
+    function addUserMessage(text) {
+      const container = document.getElementById('chatMessages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message user';
+      const initials = respondent.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      messageDiv.innerHTML = `<div class="message-avatar">${initials}</div><div class="message-content">${text.replace(/\n/g, '<br>')}</div>`;
+      container.appendChild(messageDiv);
+      container.scrollTop = container.scrollHeight;
+      messages.push({ role: 'user', content: text });
+    }
+
+    function updateProgress() {
+      const progress = Math.min(100, Math.round((turnCount / CONFIG.MAX_TURNS) * 100));
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = progress + '%';
+      document.getElementById('progressLabel').textContent = 
+        turnCount <= 2 ? 'Getting started' :
+        turnCount <= 6 ? 'Mapping workflows' :
+        turnCount <= 8 ? 'Exploring friction' : 'Wrapping up';
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      input.style.height = 'auto';
+      document.getElementById('sendButton').disabled = true;
+
+      addUserMessage(text);
+      turnCount++;
+      document.getElementById('turnCount').textContent = turnCount;
+      updateProgress();
+
+      try {
+        const response = await generateResponse(text);
+        document.getElementById('sendButton').disabled = false;
+        
+        if (turnCount >= CONFIG.MAX_TURNS) {
+          addAgentMessage(response);
+          setTimeout(() => showSummary(), 2000);
+        } else {
+          addAgentMessage(response);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('sendButton').disabled = false;
+        addAgentMessage("I'm having a technical issue. Could you repeat that?");
+      }
+    }
+
+    function showSummary() {
+      document.getElementById('chatInterface').classList.add('hidden');
+      document.getElementById('summaryView').classList.remove('hidden');
+
+      liveEntities.processes.forEach(p => {
+        const tag = document.createElement('span');
+        tag.className = 'summary-tag process';
+        tag.textContent = p.name;
+        document.getElementById('processTags').appendChild(tag);
+      });
+
+      liveEntities.tools.forEach(t => {
+        const tag = document.createElement('span');
+        tag.className = 'summary-tag tool';
+        tag.textContent = t.name;
+        document.getElementById('toolTags').appendChild(tag);
+      });
+
+      liveEntities.painPoints.forEach(p => {
+        const tag = document.createElement('span');
+        tag.className = 'summary-tag pain';
+        tag.textContent = p.description.slice(0, 40);
+        document.getElementById('painTags').appendChild(tag);
+      });
+
+      console.log('Complete:', { respondent, interviewBrief, entities: liveEntities, messages });
+    }
+
+    function downloadJson() {
+      const data = { respondent, interviewBrief, transcript: messages, entities: liveEntities, cost: totalCost };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `interview_${respondent.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+    }
+
+    function copyTranscript() {
+      const transcript = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n');
+      navigator.clipboard.writeText(transcript).then(() => alert('Copied!'));
+    }
+  </script>
+</body>
+</html>

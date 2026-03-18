@@ -1,0 +1,9 @@
+{
+  "name": "interview-agent",
+  "version": "1.0.0",
+  "description": "AI-powered process discovery interview agent for LaunchPad AI",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {}
+}
